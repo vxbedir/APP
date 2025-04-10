@@ -7,30 +7,17 @@ workflows:
     scripts:
       - name: Set up local.properties
         script: echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Update dependencies
+        script: flutter pub upgrade --major-versions
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Update build.gradle (if needed)
+        script: |
+          sed -i '' 's/compileSdkVersion [0-9]*/compileSdkVersion 33/' android/app/build.gradle
+          sed -i '' 's/targetSdkVersion [0-9]*/targetSdkVersion 33/' android/app/build.gradle
+      - name: Clean build
+        script: flutter clean
       - name: Build APK
         script: flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
-    publishing:
-      email:
-        recipients:
-          - mbedir.muhebeddin2@gmail.com
-
-  ios-workflow:
-    name: iOS Build
-    instance_type: mac_mini_m1
-    environment:
-      flutter: stable
-      xcode: latest
-      cocoapods: default
-    scripts:
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Install CocoaPods dependencies
-        script: cd ios && pod install
-      - name: Build iOS
-        script: flutter build ios --release --no-codesign
-    artifacts:
-      - build/ios/iphoneos/Runner.app
